@@ -20,25 +20,33 @@ func NewTransacao(valor int, tipo, descricao string) (*Transacao, error) {
 		Tipo:      byteTipo,
 		Descricao: descricao,
 	}
+
 	err := t.Validate()
 	if err != nil {
 		return nil, err
 	}
+
 	return t, nil
 }
 
 func (t *Transacao) Validate() error {
+
 	if t.Valor <= 0 {
 		return ErrValorZeroOuNegativo
+	}
+
+	if t.Tipo != tipoCredito && t.Tipo != tipoDebito {
+		return ErrTipoInvalido
 	}
 
 	if len(t.Descricao) == 0 {
 		return ErrCampoVazio
 	}
 
-	if t.Tipo != tipoCredito && t.Tipo != tipoDebito {
-		return ErrTipoInvalido
+	if len(t.Descricao) > 10 {
+		return ErrDescricaoMuitoLonga
 	}
+
 	return nil
 }
 
@@ -47,6 +55,8 @@ const tipoDebito = 'd'
 
 var (
 	ErrValorZeroOuNegativo = errors.New("o valor não pode ser negativo")
+	ErrDescricaoVazia      = errors.New("a descrição não pode ser vazia")
+	ErrDescricaoMuitoLonga = errors.New("a descrição não pode exceder 10 caracteres")
 	ErrCampoVazio          = errors.New("o campo não pode ser vazio")
 	ErrTipoInvalido        = errors.New("tipo inválido")
 )
