@@ -4,32 +4,28 @@ import (
 	"fmt"
 
 	"github.com/amardegan/rinha-de-backend-2024-q1/entity"
+	"github.com/amardegan/rinha-de-backend-2024-q1/infrastructure/repository"
+	"github.com/amardegan/rinha-de-backend-2024-q1/usecase/cliente"
 )
 
 func main() {
 
 	bufferCliente := entity.InitBufferClientes()
 
-	//TODO: buscar do BD e remover esse bloco
-	c1, err := entity.NewCliente(1, 100000, 0)
-	if err == nil {
-		bufferCliente.AddCliente(c1)
+	db, err := repository.InitPostgreSQL()
+	if err != nil {
+		panic(err)
 	}
-	c2, err := entity.NewCliente(2, 80000, 0)
-	if err == nil {
-		bufferCliente.AddCliente(c2)
+
+	cs := cliente.NewService(repository.NewClienteRepository(db))
+
+	clientes, err := cs.ListClientes()
+	if err != nil {
+		panic(err)
 	}
-	c3, err := entity.NewCliente(3, 1000000, 0)
-	if err == nil {
-		bufferCliente.AddCliente(c3)
-	}
-	c4, err := entity.NewCliente(4, 10000000, 0)
-	if err == nil {
-		bufferCliente.AddCliente(c4)
-	}
-	c5, err := entity.NewCliente(5, 500000, 0)
-	if err == nil {
-		bufferCliente.AddCliente(c5)
+
+	for _, c := range clientes {
+		bufferCliente.AddCliente(c)
 	}
 
 	mc1, ok := bufferCliente.GetCliente(1)
