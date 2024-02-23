@@ -1,0 +1,5 @@
+@id = 1
+
+###
+GET /clientes/{{id}}/extrato HTTP/1.1
+Host: localhost:8000
