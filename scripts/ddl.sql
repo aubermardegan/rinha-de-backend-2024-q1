@@ -12,3 +12,5 @@ CREATE TABLE transacao (
     descricao VARCHAR(200),
     realizadaEm timestamp 
 );
+
+CREATE INDEX idx_transacao_cliente_id_id_realizada_em ON transacao (clienteId, id, realizadaEm);

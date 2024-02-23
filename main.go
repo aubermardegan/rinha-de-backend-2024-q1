@@ -6,6 +6,7 @@ import (
 	"github.com/amardegan/rinha-de-backend-2024-q1/entity"
 	"github.com/amardegan/rinha-de-backend-2024-q1/infrastructure/repository"
 	"github.com/amardegan/rinha-de-backend-2024-q1/usecase/cliente"
+	"github.com/amardegan/rinha-de-backend-2024-q1/usecase/transacao"
 )
 
 func main() {
@@ -18,6 +19,7 @@ func main() {
 	}
 
 	cs := cliente.NewService(repository.NewClienteRepository(db))
+	ts := transacao.NewService(repository.NewTransacaoRepository(db))
 
 	clientes, err := cs.ListClientes()
 	if err != nil {
@@ -30,6 +32,12 @@ func main() {
 
 	mc1, ok := bufferCliente.GetCliente(1)
 	if ok {
-		fmt.Println(mc1.Limite)
+		transacoes, err := ts.GetUltimasTransacoes(mc1.Id, 10)
+		if err != nil {
+			panic(err)
+		}
+		for _, transacao := range transacoes {
+			fmt.Println(transacao)
+		}
 	}
 }

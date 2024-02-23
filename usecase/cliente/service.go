@@ -18,7 +18,7 @@ func (s *Service) ListClientes() ([]*entity.Cliente, error) {
 		return nil, err
 	}
 	if len(clientes) == 0 {
-		return nil, entity.ErrNaoEncontrado
+		return nil, entity.ErrClienteNaoEncontrado
 	}
 	return clientes, nil
 }

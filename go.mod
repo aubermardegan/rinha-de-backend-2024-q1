@@ -1,6 +1,6 @@
 module github.com/amardegan/rinha-de-backend-2024-q1
 
-go 1.21.3
+go 1.22.0
 
 require (
 	github.com/lib/pq v1.10.9

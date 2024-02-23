@@ -52,11 +52,15 @@ func (c *Cliente) Validate() error {
 	return nil
 }
 
+func (c *Cliente) SemLimiteDisponivel(t *Transacao) bool {
+	return t.Tipo == TransacaoDebito && (c.Saldo.Valor-t.Valor) < (c.Limite*-1)
+}
+
 var (
 	ErrIdClienteInvalido     = errors.New("o id do cliente deve ser um número positivo")
 	ErrLimiteInvalido        = errors.New("o limite não pode ser negativo")
 	ErrSaldoInferiorAoLimite = errors.New("o saldo não pode extrapolar o limite")
-	ErrNaoEncontrado         = errors.New("cliente não encontrado")
+	ErrClienteNaoEncontrado  = errors.New("cliente não encontrado")
 )
 
 type BufferClientes struct {

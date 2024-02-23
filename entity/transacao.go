@@ -1,24 +1,38 @@
 package entity
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
+
+const TransacaoCredito = "c"
+const TransacaoDebito = "d"
+
+var (
+	ErrValorZeroOuNegativo    = errors.New("o valor não pode ser negativo")
+	ErrDescricaoVazia         = errors.New("a descrição não pode ser vazia")
+	ErrDescricaoMuitoLonga    = errors.New("a descrição não pode exceder 10 caracteres")
+	ErrCampoVazio             = errors.New("o campo não pode ser vazio")
+	ErrTipoInvalido           = errors.New("tipo inválido")
+	ErrTransacaoNaoEncontrada = errors.New("nenhuma transacao encontrada")
+	ErrSemLimiteParaTransacao = errors.New("sem limite disponivel para concluir a transacao")
+)
 
 type Transacao struct {
-	Valor     int    `json:"valor"`
-	Tipo      byte   `json:"tipo"`
-	Descricao string `json:"descricao"`
+	Id          int
+	Valor       int       `json:"valor"`
+	Tipo        string    `json:"tipo"`
+	Descricao   string    `json:"descricao"`
+	RealizadaEm time.Time `json:"realizada_em"`
 }
 
 func NewTransacao(valor int, tipo, descricao string) (*Transacao, error) {
 
-	var byteTipo byte
-	if len(tipo) > 0 {
-		byteTipo = tipo[0]
-	}
-
 	t := &Transacao{
-		Valor:     valor,
-		Tipo:      byteTipo,
-		Descricao: descricao,
+		Valor:       valor,
+		Tipo:        tipo,
+		Descricao:   descricao,
+		RealizadaEm: time.Now(),
 	}
 
 	err := t.Validate()
@@ -35,7 +49,7 @@ func (t *Transacao) Validate() error {
 		return ErrValorZeroOuNegativo
 	}
 
-	if t.Tipo != tipoCredito && t.Tipo != tipoDebito {
+	if t.Tipo != TransacaoCredito && t.Tipo != TransacaoDebito {
 		return ErrTipoInvalido
 	}
 
@@ -49,14 +63,3 @@ func (t *Transacao) Validate() error {
 
 	return nil
 }
-
-const tipoCredito = 'c'
-const tipoDebito = 'd'
-
-var (
-	ErrValorZeroOuNegativo = errors.New("o valor não pode ser negativo")
-	ErrDescricaoVazia      = errors.New("a descrição não pode ser vazia")
-	ErrDescricaoMuitoLonga = errors.New("a descrição não pode exceder 10 caracteres")
-	ErrCampoVazio          = errors.New("o campo não pode ser vazio")
-	ErrTipoInvalido        = errors.New("tipo inválido")
-)
