@@ -1,0 +1,11 @@
+@id = 1
+
+###
+POST /clientes/{{id}}/transacoes HTTP/1.1
+Host: localhost:8000
+
+{
+    "valor": 2000,
+    "tipo" : "d",
+    "descricao" : "saque"
+}

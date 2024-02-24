@@ -32,7 +32,7 @@ func NewTransacao(valor int, tipo, descricao string) (*Transacao, error) {
 		Valor:       valor,
 		Tipo:        tipo,
 		Descricao:   descricao,
-		RealizadaEm: time.Now(),
+		RealizadaEm: time.Now().UTC(),
 	}
 
 	err := t.Validate()
