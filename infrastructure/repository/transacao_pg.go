@@ -58,7 +58,7 @@ func (r *TransacaoPg) GetByClienteAfterId(tx *sql.Tx, clienteId, transacaoId int
 	return transacoes, nil
 }
 
-func (r *TransacaoPg) GetLatestByCliente(clienteId, quantidade int) ([]*entity.Transacao, error) {
+func (r *TransacaoPg) GetLatestByCliente(c *entity.Cliente, quantidade int) ([]*entity.Transacao, error) {
 	var transacoes []*entity.Transacao
 
 	rows, err := r.db.Query(`
@@ -68,7 +68,7 @@ func (r *TransacaoPg) GetLatestByCliente(clienteId, quantidade int) ([]*entity.T
 	WHERE clienteId = $1
 	ORDER BY realizadaEm DESC, id DESC
 	LIMIT $2`,
-		clienteId, quantidade)
+		c.Id, quantidade)
 	if err != nil {
 		return nil, err
 	}

@@ -8,7 +8,7 @@ import (
 
 type Reader interface {
 	GetByClienteAfterId(tx *sql.Tx, clienteId, transacaoId int) ([]*entity.Transacao, error)
-	GetLatestByCliente(clienteId, quantidade int) ([]*entity.Transacao, error)
+	GetLatestByCliente(c *entity.Cliente, quantidade int) ([]*entity.Transacao, error)
 }
 
 type Writer interface {
@@ -28,6 +28,6 @@ type Repository interface {
 }
 
 type UseCase interface {
-	GetUltimasTransacoes(clienteId, quantidade int) ([]*entity.Transacao, error)
+	GetUltimasTransacoes(c *entity.Cliente, quantidade int) ([]*entity.Transacao, error)
 	CreateTransacao(*entity.Cliente, *entity.Transacao) error
 }

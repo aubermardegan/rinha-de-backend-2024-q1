@@ -16,14 +16,34 @@ func NewService(r Repository) *Service {
 	}
 }
 
-func (s *Service) GetUltimasTransacoes(clienteId, quantidade int) ([]*entity.Transacao, error) {
-	transacoes, err := s.repo.GetLatestByCliente(clienteId, quantidade)
+func (s *Service) GetUltimasTransacoes(c *entity.Cliente, quantidade int) ([]*entity.Transacao, error) {
+	tx, err := s.repo.BeginTran()
+	if err != nil {
+		return nil, err
+	}
+	defer s.repo.RollbackTran(tx)
+
+	transacoes, err := s.repo.GetByClienteAfterId(tx, c.Id, c.Saldo.UltimoIdTransacaoConferido)
+	if err != nil && !errors.Is(err, entity.ErrTransacaoNaoEncontrada) {
+		return nil, err
+	}
+	for _, transacao := range transacoes {
+		atualizaSaldo(&c.Saldo, transacao)
+	}
+
+	transacoes, err = s.repo.GetLatestByCliente(c, quantidade)
 	if err != nil {
 		return nil, err
 	}
 	if len(transacoes) == 0 {
 		return nil, entity.ErrTransacaoNaoEncontrada
 	}
+
+	err = s.repo.CommitTran(tx)
+	if err != nil {
+		return nil, err
+	}
+
 	return transacoes, nil
 }
 
@@ -35,7 +55,7 @@ func (s *Service) CreateTransacao(c *entity.Cliente, t *entity.Transacao) error 
 	defer s.repo.RollbackTran(tx)
 
 	transacoes, err := s.repo.GetByClienteAfterId(tx, c.Id, c.Saldo.UltimoIdTransacaoConferido)
-	if err != nil && errors.Is(err, entity.ErrTransacaoNaoEncontrada) {
+	if err != nil && !errors.Is(err, entity.ErrTransacaoNaoEncontrada) {
 		return err
 	}
 	for _, transacao := range transacoes {
