@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -11,7 +10,7 @@ import (
 	"github.com/amardegan/rinha-de-backend-2024-q1/usecase/transacao"
 )
 
-func InitAPI(ctx context.Context, bufferClientes *entity.BufferClientes, ts transacao.UseCase) {
+func InitAPI(bufferClientes *entity.BufferClientes, ts transacao.UseCase) {
 	mux := http.NewServeMux()
 
 	mux.Handle("GET /clientes/{id}/extrato", handler.Extrato(bufferClientes, ts))
