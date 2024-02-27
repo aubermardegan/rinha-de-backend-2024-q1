@@ -29,5 +29,5 @@ type Repository interface {
 
 type UseCase interface {
 	GetUltimasTransacoes(c *entity.Cliente, quantidade int) ([]*entity.Transacao, error)
-	CreateTransacao(*entity.Cliente, *entity.Transacao) error
+	CreateTransacao(entity.Cliente, *entity.Transacao) (int, int, error)
 }

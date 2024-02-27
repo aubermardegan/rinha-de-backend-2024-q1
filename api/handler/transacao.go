@@ -35,7 +35,7 @@ func CreateTransacao(bufferClientes *entity.BufferClientes, ts transacao.UseCase
 
 		t, err := entity.NewTransacao(input.Valor, input.Tipo, input.Descricao)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
 
@@ -45,9 +45,7 @@ func CreateTransacao(bufferClientes *entity.BufferClientes, ts transacao.UseCase
 		if !ok {
 			w.WriteHeader(http.StatusNotFound)
 		} else {
-			bufferClientes.Lock()
-			err := ts.CreateTransacao(c, t)
-			bufferClientes.Unlock()
+			saldo, ultimoIdTransacao, err := ts.CreateTransacao(*c, t)
 			if err != nil {
 				if errors.Is(err, entity.ErrSemLimiteParaTransacao) {
 					w.WriteHeader(http.StatusUnprocessableEntity)
@@ -56,13 +54,20 @@ func CreateTransacao(bufferClientes *entity.BufferClientes, ts transacao.UseCase
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
+
+			bufferClientes.Lock()
+			c, _ := bufferClientes.GetCliente(intId)
+			c.Saldo.Valor = saldo
+			c.Saldo.UltimoIdTransacaoConferido = ultimoIdTransacao
+			bufferClientes.Unlock()
+
 			w.Header().Set("Content-Type", "application/json")
 			var output struct {
 				Limite int `json:"limite"`
 				Saldo  int `json:"saldo"`
 			}
 			output.Limite = c.Limite
-			output.Saldo = c.Saldo.Valor
+			output.Saldo = saldo
 			if err := json.NewEncoder(w).Encode(output); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 			}

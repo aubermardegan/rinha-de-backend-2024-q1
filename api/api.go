@@ -16,5 +16,8 @@ func InitAPI(bufferClientes *entity.BufferClientes, ts transacao.UseCase) {
 	mux.Handle("GET /clientes/{id}/extrato", handler.Extrato(bufferClientes, ts))
 	mux.Handle("POST /clientes/{id}/transacoes", handler.CreateTransacao(bufferClientes, ts))
 
-	http.ListenAndServe(fmt.Sprintf(":%d", config.API_PORT), mux)
+	err := http.ListenAndServe(fmt.Sprintf(":%d", config.API_PORT), mux)
+	if err != nil {
+		panic(err)
+	}
 }

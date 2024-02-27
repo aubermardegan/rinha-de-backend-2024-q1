@@ -75,17 +75,13 @@ func InitBufferClientes() BufferClientes {
 }
 
 func (b *BufferClientes) AddCliente(c *Cliente) {
-	b.Lock()
 	_, ok := b.clientes[c.Id]
 	if !ok {
 		b.clientes[c.Id] = c
 	}
-	b.Unlock()
 }
 
 func (b *BufferClientes) GetCliente(id int) (c *Cliente, ok bool) {
-	b.RLock()
 	c, ok = b.clientes[id]
-	b.RUnlock()
 	return
 }

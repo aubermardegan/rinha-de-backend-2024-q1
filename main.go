@@ -26,7 +26,9 @@ func main() {
 	}
 
 	for _, c := range clientes {
+		bufferCliente.Lock()
 		bufferCliente.AddCliente(c)
+		bufferCliente.Unlock()
 	}
 
 	api.InitAPI(&bufferCliente, ts)
