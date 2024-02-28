@@ -1,4 +1,4 @@
-INSERT INTO cliente (limite, saldoInicial) VALUES
+INSERT INTO cliente (limite, saldo) VALUES
 (100000, 0),
 (80000, 0),
 (1000000, 0),

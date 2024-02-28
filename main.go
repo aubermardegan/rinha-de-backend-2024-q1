@@ -17,8 +17,8 @@ func main() {
 		panic(err)
 	}
 
-	cs := cliente.NewService(repository.NewClienteRepository(db))
-	ts := transacao.NewService(repository.NewTransacaoRepository(db))
+	cs := cliente.NewService(db)
+	ts := transacao.NewService(db)
 
 	clientes, err := cs.ListClientes()
 	if err != nil {
@@ -26,10 +26,8 @@ func main() {
 	}
 
 	for _, c := range clientes {
-		bufferCliente.Lock()
 		bufferCliente.AddCliente(c)
-		bufferCliente.Unlock()
 	}
 
-	api.InitAPI(&bufferCliente, ts)
+	api.InitAPI(&bufferCliente, cs, ts)
 }

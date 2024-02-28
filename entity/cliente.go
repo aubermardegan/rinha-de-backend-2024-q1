@@ -2,18 +2,12 @@ package entity
 
 import (
 	"errors"
-	"sync"
 )
 
 type Cliente struct {
 	Id     int
 	Limite int
-	Saldo  Saldo
-}
-
-type Saldo struct {
-	Valor                      int
-	UltimoIdTransacaoConferido int
+	Saldo  int
 }
 
 func NewCliente(id, limite, saldoInicial int) (*Cliente, error) {
@@ -21,10 +15,7 @@ func NewCliente(id, limite, saldoInicial int) (*Cliente, error) {
 	c := &Cliente{
 		Id:     id,
 		Limite: limite,
-		Saldo: Saldo{
-			Valor:                      saldoInicial,
-			UltimoIdTransacaoConferido: 0,
-		},
+		Saldo:  saldoInicial,
 	}
 
 	err := c.Validate()
@@ -45,7 +36,7 @@ func (c *Cliente) Validate() error {
 		return ErrLimiteInvalido
 	}
 
-	if c.Saldo.Valor < (c.Limite * -1) {
+	if c.Saldo < (c.Limite * -1) {
 		return ErrSaldoInferiorAoLimite
 	}
 
@@ -53,7 +44,7 @@ func (c *Cliente) Validate() error {
 }
 
 func (c *Cliente) SemLimiteDisponivel(t *Transacao) bool {
-	return t.Tipo == TransacaoDebito && (c.Saldo.Valor-t.Valor) < (c.Limite*-1)
+	return t.Tipo == TransacaoDebito && (c.Saldo-t.Valor) < (c.Limite*-1)
 }
 
 var (
@@ -64,7 +55,6 @@ var (
 )
 
 type BufferClientes struct {
-	sync.RWMutex
 	clientes map[int]*Cliente
 }
 

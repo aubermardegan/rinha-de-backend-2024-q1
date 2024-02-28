@@ -1,7 +1,7 @@
 CREATE UNLOGGED TABLE cliente (
     id SERIAL PRIMARY KEY,
     limite INT,
-    saldoInicial INT
+    saldo INT
 );
 
 CREATE UNLOGGED TABLE transacao (

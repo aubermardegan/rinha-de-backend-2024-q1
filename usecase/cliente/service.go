@@ -1,19 +1,24 @@
 package cliente
 
-import "github.com/amardegan/rinha-de-backend-2024-q1/entity"
+import (
+	"database/sql"
+
+	"github.com/amardegan/rinha-de-backend-2024-q1/entity"
+	"github.com/amardegan/rinha-de-backend-2024-q1/infrastructure/repository"
+)
 
 type Service struct {
-	repo Repository
+	repo *sql.DB
 }
 
-func NewService(r Repository) *Service {
+func NewService(r *sql.DB) *Service {
 	return &Service{
 		repo: r,
 	}
 }
 
 func (s *Service) ListClientes() ([]*entity.Cliente, error) {
-	clientes, err := s.repo.List()
+	clientes, err := repository.ListClientes(s.repo)
 	if err != nil {
 		return nil, err
 	}
@@ -21,4 +26,8 @@ func (s *Service) ListClientes() ([]*entity.Cliente, error) {
 		return nil, entity.ErrClienteNaoEncontrado
 	}
 	return clientes, nil
+}
+
+func (s *Service) GetClienteById(clienteId int) (*entity.Cliente, error) {
+	return repository.GetClienteById(s.repo, clienteId)
 }
