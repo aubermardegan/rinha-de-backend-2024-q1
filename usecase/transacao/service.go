@@ -1,25 +1,25 @@
 package transacao
 
 import (
-	"database/sql"
+	"context"
 
 	"github.com/amardegan/rinha-de-backend-2024-q1/entity"
 	"github.com/amardegan/rinha-de-backend-2024-q1/infrastructure/repository"
 )
 
 type Service struct {
-	repo *sql.DB
+	repo *repository.DBConn
 }
 
-func NewService(r *sql.DB) *Service {
+func NewService(r *repository.DBConn) *Service {
 	return &Service{
 		repo: r,
 	}
 }
 
-func (s *Service) GetUltimasTransacoes(c *entity.Cliente, quantidade int) ([]*entity.Transacao, error) {
+func (s *Service) GetUltimasTransacoes(ctx context.Context, c *entity.Cliente, quantidade int) ([]*entity.Transacao, error) {
 
-	transacoes, err := repository.GetLatestByCliente(s.repo, c, quantidade)
+	transacoes, err := repository.GetLatestByCliente(ctx, s.repo.Pool, c, quantidade)
 	if err != nil {
 		return nil, err
 	}
@@ -30,6 +30,6 @@ func (s *Service) GetUltimasTransacoes(c *entity.Cliente, quantidade int) ([]*en
 	return transacoes, nil
 }
 
-func (s *Service) CreateTransacao(clienteId int, t *entity.Transacao) (int, error) {
-	return repository.CreateTransacao(s.repo, clienteId, t)
+func (s *Service) CreateTransacao(ctx context.Context, clienteId int, t *entity.Transacao) (int, error) {
+	return repository.CreateTransacao(ctx, s.repo.Pool, clienteId, t)
 }

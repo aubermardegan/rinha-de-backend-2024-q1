@@ -4,7 +4,6 @@ services:
     #image: rinha-de-backend-2024-q1:latest
     build:
       context: .
-      target: final
       #platform: linux/amd64
     environment:
       - DB_HOSTNAME=db

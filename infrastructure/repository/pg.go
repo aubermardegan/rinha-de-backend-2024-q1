@@ -1,21 +1,33 @@
 package repository
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 
 	"github.com/amardegan/rinha-de-backend-2024-q1/config"
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
 )
 
-func InitPostgreSQL() (*sql.DB, error) {
-	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		config.DATABASE_HOST, config.DATABASE_PORT, config.DATABASE_USER, config.DATABASE_PASSWORD, config.DATABASE_NAME)
+type DBConn struct {
+	Pool *pgxpool.Pool
+}
 
-	db, err := sql.Open("postgres", connStr)
+func InitPostgreSQL(ctx context.Context) (*DBConn, error) {
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable&pool_max_conns=100",
+		config.DATABASE_USER, config.DATABASE_PASSWORD, config.DATABASE_HOST, config.DATABASE_PORT, config.DATABASE_NAME)
+	cfg, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	err = db.Ping()
-	return db, err
+	cfg.MaxConns = 10
+
+	db, err := pgxpool.NewWithConfig(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping(ctx)
+
+	return &DBConn{Pool: db}, err
 }

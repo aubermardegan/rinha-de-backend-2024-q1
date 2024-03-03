@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -11,11 +12,11 @@ import (
 	"github.com/amardegan/rinha-de-backend-2024-q1/usecase/transacao"
 )
 
-func InitAPI(bufferClientes *entity.BufferClientes, cs cliente.UseCase, ts transacao.UseCase) {
+func InitAPI(ctx context.Context, bufferClientes *entity.BufferClientes, cs cliente.UseCase, ts transacao.UseCase) {
 	mux := http.NewServeMux()
 
-	mux.Handle("GET /clientes/{id}/extrato", handler.Extrato(bufferClientes, cs, ts))
-	mux.Handle("POST /clientes/{id}/transacoes", handler.CreateTransacao(bufferClientes, ts))
+	mux.Handle("GET /clientes/{id}/extrato", handler.Extrato(ctx, bufferClientes, cs, ts))
+	mux.Handle("POST /clientes/{id}/transacoes", handler.CreateTransacao(ctx, bufferClientes, ts))
 
 	err := http.ListenAndServe(fmt.Sprintf(":%d", config.API_PORT), mux)
 	if err != nil {

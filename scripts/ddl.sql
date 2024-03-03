@@ -1,5 +1,5 @@
 CREATE UNLOGGED TABLE cliente (
-    id SERIAL PRIMARY KEY,
+    id INT PRIMARY KEY,
     limite INT,
     saldo INT
 );
@@ -13,4 +13,6 @@ CREATE UNLOGGED TABLE transacao (
     realizadaEm timestamp 
 );
 
-CREATE INDEX idx_transacao_cliente_id_id_realizada_em ON transacao (clienteId, id, realizadaEm DESC);
+CREATE INDEX idx_cliente_id_includes ON cliente (id) include (limite, saldo);
+CREATE INDEX idx_transacao_cliente_id_id_realizada_em ON transacao (clienteId, realizadaEm DESC);
+

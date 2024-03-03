@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,7 +15,7 @@ import (
 	"github.com/amardegan/rinha-de-backend-2024-q1/usecase/transacao"
 )
 
-func CreateTransacao(bufferClientes *entity.BufferClientes, ts transacao.UseCase) http.HandlerFunc {
+func CreateTransacao(ctx context.Context, bufferClientes *entity.BufferClientes, ts transacao.UseCase) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		id := r.PathValue("id")
@@ -45,7 +46,7 @@ func CreateTransacao(bufferClientes *entity.BufferClientes, ts transacao.UseCase
 		if !ok {
 			w.WriteHeader(http.StatusNotFound)
 		} else {
-			saldo, err := ts.CreateTransacao(c.Id, t)
+			saldo, err := ts.CreateTransacao(ctx, c.Id, t)
 			if err != nil {
 				if errors.Is(err, entity.ErrSemLimiteParaTransacao) {
 					w.WriteHeader(http.StatusUnprocessableEntity)
@@ -71,7 +72,7 @@ func CreateTransacao(bufferClientes *entity.BufferClientes, ts transacao.UseCase
 	})
 }
 
-func Extrato(bufferClientes *entity.BufferClientes, cs cliente.UseCase, ts transacao.UseCase) http.HandlerFunc {
+func Extrato(ctx context.Context, bufferClientes *entity.BufferClientes, cs cliente.UseCase, ts transacao.UseCase) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		id := r.PathValue("id")
@@ -86,14 +87,14 @@ func Extrato(bufferClientes *entity.BufferClientes, cs cliente.UseCase, ts trans
 			w.WriteHeader(http.StatusNotFound)
 		} else {
 
-			cliente, err := cs.GetClienteById(c.Id)
+			cliente, err := cs.GetClienteById(ctx, c.Id)
 			if err != nil && !errors.Is(err, entity.ErrClienteNaoEncontrado) {
 				fmt.Println(err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 
-			transacoes, err := ts.GetUltimasTransacoes(c, 10)
+			transacoes, err := ts.GetUltimasTransacoes(ctx, c, 10)
 			if err != nil && !errors.Is(err, entity.ErrTransacaoNaoEncontrada) {
 				fmt.Println(err)
 				w.WriteHeader(http.StatusInternalServerError)

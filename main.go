@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+
 	"github.com/amardegan/rinha-de-backend-2024-q1/api"
 	"github.com/amardegan/rinha-de-backend-2024-q1/entity"
 	"github.com/amardegan/rinha-de-backend-2024-q1/infrastructure/repository"
@@ -12,7 +14,8 @@ func main() {
 
 	bufferCliente := entity.InitBufferClientes()
 
-	db, err := repository.InitPostgreSQL()
+	ctx := context.Background()
+	db, err := repository.InitPostgreSQL(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -20,7 +23,7 @@ func main() {
 	cs := cliente.NewService(db)
 	ts := transacao.NewService(db)
 
-	clientes, err := cs.ListClientes()
+	clientes, err := cs.ListClientes(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -29,5 +32,5 @@ func main() {
 		bufferCliente.AddCliente(c)
 	}
 
-	api.InitAPI(&bufferCliente, cs, ts)
+	api.InitAPI(ctx, &bufferCliente, cs, ts)
 }

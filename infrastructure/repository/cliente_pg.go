@@ -1,15 +1,18 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/amardegan/rinha-de-backend-2024-q1/entity"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func ListClientes(db *sql.DB) ([]*entity.Cliente, error) {
+func ListClientes(ctx context.Context, db *pgxpool.Pool) ([]*entity.Cliente, error) {
 	var clientes []*entity.Cliente
 
-	rows, err := db.Query("SELECT id, limite, saldo FROM cliente")
+	rows, err := db.Query(ctx, "SELECT id, limite, saldo FROM cliente")
 	if err != nil {
 		return nil, err
 	}
@@ -27,10 +30,15 @@ func ListClientes(db *sql.DB) ([]*entity.Cliente, error) {
 	return clientes, nil
 }
 
-func GetClienteById(db *sql.DB, clienteId int) (*entity.Cliente, error) {
-	var cliente entity.Cliente
+func GetClienteById(ctx context.Context, db *pgxpool.Pool, clienteId int) (*entity.Cliente, error) {
+	var cliente *entity.Cliente
+	rows, err := db.Query(ctx, "SELECT id, limite, saldo FROM cliente WHERE Id = $1", clienteId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-	err := db.QueryRow("SELECT id, limite, saldo FROM cliente WHERE Id = $1", clienteId).Scan(&cliente.Id, &cliente.Limite, &cliente.Saldo)
+	cliente, err = pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByName[entity.Cliente])
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, entity.ErrClienteNaoEncontrado
@@ -38,5 +46,5 @@ func GetClienteById(db *sql.DB, clienteId int) (*entity.Cliente, error) {
 		return nil, err
 	}
 
-	return &cliente, nil
+	return cliente, nil
 }

@@ -1,15 +1,17 @@
 package repository
 
 import (
-	"database/sql"
+	"context"
 
 	"github.com/amardegan/rinha-de-backend-2024-q1/entity"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func GetLatestByCliente(db *sql.DB, c *entity.Cliente, quantidade int) ([]*entity.Transacao, error) {
+func GetLatestByCliente(ctx context.Context, db *pgxpool.Pool, c *entity.Cliente, quantidade int) ([]*entity.Transacao, error) {
 	var transacoes []*entity.Transacao
 
-	rows, err := db.Query(`
+	rows, err := db.Query(ctx, `
 	SELECT
 		id, valor, tipo, descricao, realizadaEm 
 	FROM transacao 
@@ -35,16 +37,16 @@ func GetLatestByCliente(db *sql.DB, c *entity.Cliente, quantidade int) ([]*entit
 	return transacoes, nil
 }
 
-func CreateTransacao(db *sql.DB, clienteId int, t *entity.Transacao) (int, error) {
-	tx, err := db.Begin()
+func CreateTransacao(ctx context.Context, db *pgxpool.Pool, clienteId int, t *entity.Transacao) (int, error) {
+	tx, err := db.Begin(ctx)
 	if err != nil {
 		return 0, err
 	}
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 
 	var saldo int
 	var limite int
-	err = tx.QueryRow("SELECT saldo, limite FROM cliente WHERE id = $1 FOR UPDATE;", clienteId).Scan(&saldo, &limite)
+	err = tx.QueryRow(ctx, "SELECT saldo, limite FROM cliente WHERE id = $1 FOR UPDATE;", clienteId).Scan(&saldo, &limite)
 	if err != nil {
 		return 0, err
 	}
@@ -54,24 +56,27 @@ func CreateTransacao(db *sql.DB, clienteId int, t *entity.Transacao) (int, error
 		return 0, entity.ErrSemLimiteParaTransacao
 	}
 
-	_, err = tx.Exec(`
-		INSERT INTO transacao (
-			clienteId, valor, tipo, descricao, realizadaEm) 
-		VALUES (
-			$1, $2, $3, $4, $5)`,
+	batch := &pgx.Batch{}
+	batch.Queue(`
+	INSERT INTO transacao (
+		clienteId, valor, tipo, descricao, realizadaEm) 
+	VALUES (
+		$1, $2, $3, $4, $5)`,
 		clienteId, t.Valor, t.Tipo, t.Descricao, t.RealizadaEm)
+
+	batch.Queue("UPDATE cliente SET saldo = $1 WHERE id = $2;", saldo, clienteId)
+
+	br := tx.SendBatch(ctx, batch)
+	_, err = br.Exec()
 	if err != nil {
-		tx.Rollback()
+		return 0, err
+	}
+	err = br.Close()
+	if err != nil {
 		return 0, err
 	}
 
-	_, err = tx.Exec("UPDATE cliente SET saldo = $1 WHERE id = $2;", saldo, clienteId)
-	if err != nil {
-		tx.Rollback()
-		return 0, err
-	}
-
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return 0, err
 	}
