@@ -1,17 +1,17 @@
+version: "3.5"
 
 services:
   api01: &api
     #image: rinha-de-backend-2024-q1:latest
     build:
       context: .
-      #platform: linux/amd64
     environment:
       - DB_HOSTNAME=db
     ports:
       - 8081:8080
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_healthy      
     networks:
       - default
     deploy:
@@ -23,8 +23,6 @@ services:
   api02:
     <<: *api
     hostname: api02
-    environment:
-      - DB_HOSTNAME=db
     ports:
       - 8082:8080
 
@@ -55,8 +53,7 @@ services:
     volumes:
       - ./scripts/ddl.sql:/docker-entrypoint-initdb.d/ddl.sql
       - ./scripts/dml.sql:/docker-entrypoint-initdb.d/dml.sql
-      - ./postgresql.conf:/docker-entrypoint-initdb.d/postgresql.conf
-    command: postgres -c config_file=/docker-entrypoint-initdb.d/postgresql.conf
+    command: postgres -c checkpoint_timeout=600 -c max_wal_size=4096
     networks:
       - default
     deploy:
@@ -73,5 +70,3 @@ services:
 networks:
   default:
     driver: bridge
-    name: rinha-nginx-2024q1
-
